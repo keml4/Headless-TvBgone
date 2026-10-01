@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>Headless TV-B-Gone</title>
+    <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+    <style>
+      :root { color-scheme: dark; --background:#111; --surface:#181818; --text:#f2f0ec; --muted:#a7a29b; --line:#34312d; --accent:#d8a06a; }
+      * { box-sizing:border-box; }
+      body { margin:0; min-height:100vh; background:var(--background); color:var(--text); font:16px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+      .page { width:min(100% - 40px,1040px); margin:0 auto; padding:72px 0 64px; }
+      header { max-width:680px; margin-bottom:56px; }
+      .eyebrow,.card-label,.note-number { color:var(--accent); font-size:12px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
+      h1 { margin:0; font-size:clamp(2.7rem,7vw,5rem); letter-spacing:-.065em; line-height:.98; }
+      .intro { max-width:590px; margin:22px 0 0; color:var(--muted); font-size:1.08rem; }
+      .firmware-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+      .firmware-card { display:flex; min-height:320px; flex-direction:column; padding:28px; border:1px solid var(--line); border-radius:12px; background:var(--surface); }
+      h2 { margin:14px 0 10px; font-size:1.7rem; }
+      .firmware-card p { margin:0; color:var(--muted); }
+      esp-web-install-button { display:block; margin-top:auto; padding-top:28px; }
+      .bw16-card { grid-column:1 / -1; min-height:0; }
+      .bw16-card a { display:inline-block; margin-top:24px; color:var(--accent); font-weight:700; }
+      .install-notes { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; margin-top:48px; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--line); }
+      .note { min-height:104px; padding:18px; background:var(--surface); }
+      .note-number { display:block; margin-bottom:8px; }
+      .note span:last-child { font-size:.95rem; font-weight:600; }
+      footer { display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-top:24px; padding-top:20px; border-top:1px solid var(--line); color:var(--muted); font-size:.88rem; }
+      @media (max-width:680px) { .page{width:min(100% - 28px,560px);padding-top:44px}.firmware-grid,.install-notes{grid-template-columns:1fr}.firmware-card{min-height:0;padding:24px}.bw16-card{grid-column:auto}.footer{flex-direction:column} }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <p class="eyebrow">Infrared transmitter</p>
+        <h1>Headless TV-B-Gone</h1>
+        <p class="intro">Choose a regional ESP32 firmware build and install it directly from the browser.</p>
+      </header>
+      <main>
+        <section class="firmware-grid" aria-label="Firmware selection">
+          <article class="firmware-card">
+            <p class="card-label">North America / Asia</p>
+            <h2>NA / Asia firmware</h2>
+            <p>Regional TV-B-Gone timing tables with expanded LG, Samsung, Toshiba, and Sony power-code coverage.</p>
+            <esp-web-install-button manifest="./manifest-na.json"><span slot="unsupported">Web Serial is not supported. Use Chrome or Edge on desktop.</span><span slot="not-allowed">Use HTTPS and a USB data cable. Close other serial monitors and retry.</span></esp-web-install-button>
+          </article>
+          <article class="firmware-card">
+            <p class="card-label">Europe</p>
+            <h2>Europe firmware</h2>
+            <p>European TV-B-Gone timing tables with expanded LG, Samsung, Toshiba, and Sony power-code coverage.</p>
+            <esp-web-install-button manifest="./manifest-eu.json"><span slot="unsupported">Web Serial is not supported. Use Chrome or Edge on desktop.</span><span slot="not-allowed">Use HTTPS and a USB data cable. Close other serial monitors and retry.</span></esp-web-install-button>
+          </article>
+          <article class="firmware-card bw16-card">
+            <p class="card-label">Realtek AmebaD</p>
+            <h2>BW16 support</h2>
+            <p>BW16 sketches are available, but the Realtek RTL8720DN bootloader has no compatible Web Serial/WebUSB flasher. Use the AmebaD Arduino tools to upload them.</p>
+            <a href="../BW16-README.md">Open BW16 upload instructions →</a>
+          </article>
+        </section>
+        <section class="install-notes" aria-label="Installation steps">
+          <div class="note"><span class="note-number">01</span><span>Connect a USB data cable</span></div>
+          <div class="note"><span class="note-number">02</span><span>Choose the regional build</span></div>
+          <div class="note"><span class="note-number">03</span><span>Select the serial port</span></div>
+        </section>
+      </main>
+      <footer><span>Chrome or Edge over HTTPS for ESP32</span><span>IR LED configured for GPIO 4</span><span>Use only on equipment you own or are authorized to control</span></footer>
+    </div>
+  </body>
+</html>

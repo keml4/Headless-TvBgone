@@ -1,0 +1,12 @@
+{
+  "name": "Headless TV-B-Gone NA/Asia",
+  "version": "latest",
+  "new_install_prompt_erase": true,
+  "builds": [
+    {"chipFamily": "ESP32", "parts": [{"path": "firmware-na.bin", "offset": 0}]},
+    {"chipFamily": "ESP32-S2", "parts": [{"path": "firmware-na-s2.bin", "offset": 0}]},
+    {"chipFamily": "ESP32-S3", "parts": [{"path": "firmware-na-s3.bin", "offset": 0}]},
+    {"chipFamily": "ESP32-C3", "parts": [{"path": "firmware-na-c3.bin", "offset": 0}]},
+    {"chipFamily": "ESP32-C6", "parts": [{"path": "firmware-na-c6.bin", "offset": 0}]}
+  ]
+}

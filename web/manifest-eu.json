@@ -1,0 +1,12 @@
+{
+  "name": "Headless TV-B-Gone Europe",
+  "version": "latest",
+  "new_install_prompt_erase": true,
+  "builds": [
+    {"chipFamily": "ESP32", "parts": [{"path": "firmware-eu.bin", "offset": 0}]},
+    {"chipFamily": "ESP32-S2", "parts": [{"path": "firmware-eu-s2.bin", "offset": 0}]},
+    {"chipFamily": "ESP32-S3", "parts": [{"path": "firmware-eu-s3.bin", "offset": 0}]},
+    {"chipFamily": "ESP32-C3", "parts": [{"path": "firmware-eu-c3.bin", "offset": 0}]},
+    {"chipFamily": "ESP32-C6", "parts": [{"path": "firmware-eu-c6.bin", "offset": 0}]}
+  ]
+}

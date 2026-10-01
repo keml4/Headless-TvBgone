@@ -1,0 +1,116 @@
+name: Build and publish firmware
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'NA-Tv-B-Gone/**'
+      - 'EU-Tv-B-Gone/**'
+      - 'web/**'
+      - '.github/workflows/build-firmware.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      - name: Install ESP32 core and libraries
+        run: |
+          arduino-cli config init --overwrite
+          arduino-cli config add board_manager.additional_urls \
+            https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32@3.2.0
+          arduino-cli lib install IRremoteESP8266
+
+      - name: Compile and merge firmware images
+        run: |
+          set -euo pipefail
+
+          build_firmware() {
+            local name="$1"
+            local fqbn="$2"
+            local sketch="$3"
+            local output_dir="build/$name"
+
+            arduino-cli compile \
+              --fqbn "$fqbn" \
+              --export-binaries \
+              --output-dir "$output_dir" \
+              "$sketch"
+
+            local merged
+            merged="$(find "$output_dir" -name '*.merged.bin' -print -quit)"
+            test -n "$merged"
+            cp "$merged" "firmware-$name.bin"
+          }
+
+          build_firmware na esp32:esp32:esp32 NA-Tv-B-Gone
+          build_firmware eu esp32:esp32:esp32 EU-Tv-B-Gone
+          build_firmware na-s2 esp32:esp32:esp32s2 NA-Tv-B-Gone
+          build_firmware eu-s2 esp32:esp32:esp32s2 EU-Tv-B-Gone
+          build_firmware na-s3 esp32:esp32:esp32s3 NA-Tv-B-Gone
+          build_firmware eu-s3 esp32:esp32:esp32s3 EU-Tv-B-Gone
+          build_firmware na-c3 esp32:esp32:esp32c3 NA-Tv-B-Gone
+          build_firmware eu-c3 esp32:esp32:esp32c3 EU-Tv-B-Gone
+          build_firmware na-c6 esp32:esp32:esp32c6 NA-Tv-B-Gone
+          build_firmware eu-c6 esp32:esp32:esp32c6 EU-Tv-B-Gone
+
+      - name: Publish latest release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest firmware
+          body: |
+            Automatically built Arduino CLI firmware for ESP32 Dev Module.
+
+            Use the web flasher at https://keml4.github.io/Headless-TvBgone/.
+          files: |
+            firmware-na.bin
+            firmware-eu.bin
+            firmware-na-s2.bin
+            firmware-eu-s2.bin
+            firmware-na-s3.bin
+            firmware-eu-s3.bin
+            firmware-na-c3.bin
+            firmware-eu-c3.bin
+            firmware-na-c6.bin
+            firmware-eu-c6.bin
+          overwrite_files: true
+          make_latest: true
+
+      - name: Copy firmware into web site (same-origin for esp-web-tools)
+        run: |
+          cp -v firmware-*.bin web/
+          ls -lh web/
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

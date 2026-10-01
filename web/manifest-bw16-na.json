@@ -1,0 +1,8 @@
+{
+  "name": "Headless TV-B-Gone BW16 NA/Asia",
+  "version": "latest",
+  "new_install_prompt_erase": true,
+  "builds": [
+    {"chipFamily": "Realtek RTL8720", "parts": [{"path": "firmware-bw16-na.bin", "offset": 0}]}
+  ]
+}
