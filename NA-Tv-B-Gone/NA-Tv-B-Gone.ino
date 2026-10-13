@@ -3,7 +3,14 @@
 #include "ir_codes_na.hpp"
 
 namespace {
+// Default IR LED pin: 4 (ESP32-style in original). Use pin 12 for Arduino Uno R3 clones
+// which commonly define ARDUINO_AVR_UNO. This allows the sketch to work on Unos by
+// selecting pin 12 automatically when compiled for that board.
+#if defined(ARDUINO_AVR_UNO)
+constexpr uint16_t kIrLedPin = 12;
+#else
 constexpr uint16_t kIrLedPin = 4;
+#endif
 constexpr uint32_t kSerialBaud = 115200;
 constexpr uint16_t kInterCodeDelayMs = 5;
 constexpr uint16_t kLgInterCodeDelayMs = 100;
