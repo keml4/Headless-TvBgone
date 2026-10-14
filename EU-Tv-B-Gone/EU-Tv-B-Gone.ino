@@ -1,20 +1,51 @@
 #include <Arduino.h>
+
+#if defined(ESP8266)
 #include <IRsend.h>
+#define IR_SENDER_CLASS IRsend
+#else
+#define DISABLE_CODE_FOR_RECEIVER
+#if defined(ARDUINO_AVR_UNO)
+#define IR_SEND_PIN 12
+#else
+#define IR_SEND_PIN 4
+#endif
+#include <IRremote.hpp>
+
+class UnifiedIRSenderWrapper {
+public:
+  UnifiedIRSenderWrapper(uint8_t pin) : pin_(pin) {}
+  void begin() {
+#if defined(IR_SEND_PIN)
+    IrSender.begin();
+#else
+    IrSender.begin(pin_);
+#endif
+  }
+  void sendSAMSUNG(uint32_t data, uint8_t nbits) { IrSender.sendSAMSUNG(data, nbits); }
+  void sendNEC(uint32_t data, uint8_t nbits) { IrSender.sendNECMSB(data, nbits); }
+  void sendSony(uint32_t data, uint8_t nbits) { IrSender.sendSony(data, nbits); }
+  void sendRaw(const uint16_t *buf, uint16_t len, uint8_t hz) { IrSender.sendRaw(buf, len, hz); }
+private:
+  uint8_t pin_;
+};
+#define IR_SENDER_CLASS UnifiedIRSenderWrapper
+#endif
+
 #include "ir_codes_eu.hpp"
 
 namespace {
-// Default IR LED pin: 4 (ESP32-style in original). Use pin 12 for Arduino Uno R3 clones
-// which commonly define ARDUINO_AVR_UNO. This allows the sketch to work on Unos by
-// selecting pin 12 automatically when compiled for that board.
 #if defined(ARDUINO_AVR_UNO)
 constexpr uint16_t kIrLedPin = 12;
+#elif defined(ESP8266)
+constexpr uint16_t kIrLedPin = 2;
 #else
 constexpr uint16_t kIrLedPin = 4;
 #endif
 constexpr uint32_t kSerialBaud = 115200;
 constexpr uint16_t kInterCodeDelayMs = 5;
 constexpr uint16_t kLgInterCodeDelayMs = 100;
-IRsend irsend(kIrLedPin);
+IR_SENDER_CLASS irsend(kIrLedPin);
 uint16_t rawData[300];
 
 bool expandCode(const IrCode& code) {
@@ -33,7 +64,7 @@ bool expandCode(const IrCode& code) {
       index = static_cast<uint16_t>((index << 1) | ((codeByte >> bitsLeft) & 1));
     }
     const uint16_t timingIndex = index * 2;
-    if (timingIndex + 1 >= code.timeValues) return false;
+    if (index >= code.timeValues) return false;
     rawData[pair * 2] = code.times[timingIndex] * 10;
     rawData[pair * 2 + 1] = code.times[timingIndex + 1] * 10;
   }

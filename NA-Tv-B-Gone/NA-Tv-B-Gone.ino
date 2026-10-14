@@ -1,5 +1,26 @@
 #include <Arduino.h>
+
+#if defined(ARDUINO_ARCH_AVR) || defined(__AVR__)
+#define DISABLE_CODE_FOR_RECEIVER
+#include <IRremote.hpp>
+
+class AvrIRSenderWrapper {
+public:
+  AvrIRSenderWrapper(uint8_t pin) : pin_(pin) {}
+  void begin() { IrSender.begin(pin_); }
+  void sendSAMSUNG(uint32_t data, uint8_t nbits) { IrSender.sendSAMSUNG(data, nbits); }
+  void sendNEC(uint32_t data, uint8_t nbits) { IrSender.sendNECMSB(data, nbits); }
+  void sendSony(uint32_t data, uint8_t nbits) { IrSender.sendSony(data, nbits); }
+  void sendRaw(const uint16_t *buf, uint16_t len, uint8_t hz) { IrSender.sendRaw(buf, len, hz); }
+private:
+  uint8_t pin_;
+};
+#define IR_SENDER_CLASS AvrIRSenderWrapper
+#else
 #include <IRsend.h>
+#define IR_SENDER_CLASS IRsend
+#endif
+
 #include "ir_codes_na.hpp"
 
 namespace {
@@ -14,7 +35,7 @@ constexpr uint16_t kIrLedPin = 4;
 constexpr uint32_t kSerialBaud = 115200;
 constexpr uint16_t kInterCodeDelayMs = 5;
 constexpr uint16_t kLgInterCodeDelayMs = 100;
-IRsend irsend(kIrLedPin);
+IR_SENDER_CLASS irsend(kIrLedPin);
 uint16_t rawData[300];
 
 bool expandCode(const IrCode& code) {
@@ -32,8 +53,8 @@ bool expandCode(const IrCode& code) {
       --bitsLeft;
       index = static_cast<uint16_t>((index << 1) | ((codeByte >> bitsLeft) & 1));
     }
+    if (index >= code.timeValues) return false;
     const uint16_t timingIndex = index * 2;
-    if (timingIndex + 1 >= code.timeValues) return false;
     rawData[pair * 2] = code.times[timingIndex] * 10;
     rawData[pair * 2 + 1] = code.times[timingIndex + 1] * 10;
   }
@@ -75,7 +96,7 @@ void sendCode(uint8_t index) {
     return;
   }
   irsend.sendRaw(rawData, code.numPairs * 2, code.timerValue);
-  Serial.print(F("Sent NA/Asia code "));
+  Serial.print(F("Sent NA code "));
   Serial.print(index + 1);
   Serial.print('/');
   Serial.println(kPowerCodeCount);
@@ -86,9 +107,9 @@ void setup() {
   Serial.begin(kSerialBaud);
   delay(500);
   irsend.begin();
-  Serial.print(F("NA/Asia transmitter ready: "));
+  Serial.print(F("NA transmitter ready: "));
   Serial.print(kPowerCodeCount);
-  Serial.print(F(" regional codes plus "));
+  Serial.print(F(" NA codes plus "));
   Serial.print(kLgCodeCount);
   Serial.println(F(" LG codes"));
 }
@@ -101,6 +122,6 @@ void loop() {
     delay(kInterCodeDelayMs);
     yield();
   }
-  Serial.println(F("NA/Asia cycle complete"));
+  Serial.println(F("NA cycle complete"));
   delay(2000);
 }
