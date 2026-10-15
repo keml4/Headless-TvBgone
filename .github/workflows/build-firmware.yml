@@ -26,20 +26,24 @@ jobs:
       - name: Set up Arduino CLI
         uses: arduino/setup-arduino-cli@v2
 
-      - name: Install ESP32 core and libraries
+      - name: Install cores and libraries
         run: |
           arduino-cli config init --overwrite
           arduino-cli config add board_manager.additional_urls \
-            https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+            https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json \
+            https://arduino.esp8266.com/stable/package_esp8266com_index.json
           arduino-cli core update-index
           arduino-cli core install esp32:esp32@3.2.0
-          arduino-cli lib install IRremoteESP8266
+          arduino-cli core install esp8266:esp8266@3.1.2
+          arduino-cli lib install IRremote@4.4.1
+          arduino-cli lib install IRremoteESP8266@2.8.6
 
       - name: Compile and merge firmware images
         run: |
           set -euo pipefail
 
-          build_firmware() {
+          # ESP32 variants produce a merged.bin
+          build_esp32() {
             local name="$1"
             local fqbn="$2"
             local sketch="$3"
@@ -57,16 +61,42 @@ jobs:
             cp "$merged" "firmware-$name.bin"
           }
 
-          build_firmware na esp32:esp32:esp32 NA-Tv-B-Gone
-          build_firmware eu esp32:esp32:esp32 EU-Tv-B-Gone
-          build_firmware na-s2 esp32:esp32:esp32s2 NA-Tv-B-Gone
-          build_firmware eu-s2 esp32:esp32:esp32s2 EU-Tv-B-Gone
-          build_firmware na-s3 esp32:esp32:esp32s3 NA-Tv-B-Gone
-          build_firmware eu-s3 esp32:esp32:esp32s3 EU-Tv-B-Gone
-          build_firmware na-c3 esp32:esp32:esp32c3 NA-Tv-B-Gone
-          build_firmware eu-c3 esp32:esp32:esp32c3 EU-Tv-B-Gone
-          build_firmware na-c6 esp32:esp32:esp32c6 NA-Tv-B-Gone
-          build_firmware eu-c6 esp32:esp32:esp32c6 EU-Tv-B-Gone
+          # ESP8266 has no merged.bin — use the .ino.bin directly
+          build_esp8266() {
+            local name="$1"
+            local fqbn="$2"
+            local sketch="$3"
+            local output_dir="build/$name"
+
+            arduino-cli compile \
+              --fqbn "$fqbn" \
+              --export-binaries \
+              --output-dir "$output_dir" \
+              "$sketch"
+
+            local bin
+            bin="$(find "$output_dir" -name '*.ino.bin' -print -quit)"
+            test -n "$bin"
+            cp "$bin" "firmware-$name.bin"
+          }
+
+          # ── ESP32 family ──
+          build_esp32 na    esp32:esp32:esp32    NA-Tv-B-Gone
+          build_esp32 eu    esp32:esp32:esp32    EU-Tv-B-Gone
+          build_esp32 na-s2 esp32:esp32:esp32s2  NA-Tv-B-Gone
+          build_esp32 eu-s2 esp32:esp32:esp32s2  EU-Tv-B-Gone
+          build_esp32 na-s3 esp32:esp32:esp32s3  NA-Tv-B-Gone
+          build_esp32 eu-s3 esp32:esp32:esp32s3  EU-Tv-B-Gone
+          build_esp32 na-c3 esp32:esp32:esp32c3  NA-Tv-B-Gone
+          build_esp32 eu-c3 esp32:esp32:esp32c3  EU-Tv-B-Gone
+          build_esp32 na-c6 esp32:esp32:esp32c6  NA-Tv-B-Gone
+          build_esp32 eu-c6 esp32:esp32:esp32c6  EU-Tv-B-Gone
+          build_esp32 na-h2 esp32:esp32:esp32h2  NA-Tv-B-Gone
+          build_esp32 eu-h2 esp32:esp32:esp32h2  EU-Tv-B-Gone
+
+          # ── ESP8266 ──
+          build_esp8266 na-esp8266 esp8266:esp8266:generic:eesz=1M64 NA-Tv-B-Gone
+          build_esp8266 eu-esp8266 esp8266:esp8266:generic:eesz=1M64 EU-Tv-B-Gone
 
       - name: Publish latest release
         uses: softprops/action-gh-release@v2
@@ -74,9 +104,11 @@ jobs:
           tag_name: latest
           name: Latest firmware
           body: |
-            Automatically built Arduino CLI firmware for ESP32 Dev Module.
+            Automatically built firmware for ESP32 family + ESP8266.
 
-            Use the web flasher at https://keml4.github.io/Headless-TvBgone/.
+            **Supported chips:** ESP32, ESP32-S2, ESP32-S3, ESP32-C3, ESP32-C6, ESP32-H2, ESP8266
+
+            Use the web flasher at https://keml4.github.io/Headless-TvBgone/
           files: |
             firmware-na.bin
             firmware-eu.bin
@@ -88,6 +120,10 @@ jobs:
             firmware-eu-c3.bin
             firmware-na-c6.bin
             firmware-eu-c6.bin
+            firmware-na-h2.bin
+            firmware-eu-h2.bin
+            firmware-na-esp8266.bin
+            firmware-eu-esp8266.bin
           overwrite_files: true
           make_latest: true
 

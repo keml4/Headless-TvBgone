@@ -7,12 +7,12 @@
     <title>Headless TV-B-Gone</title>
     <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
     <style>
-      :root { color-scheme: dark; --background:#111; --surface:#181818; --text:#f2f0ec; --muted:#a7a29b; --line:#34312d; --accent:#d8a06a; }
+      :root { color-scheme: dark; --background:#111; --surface:#181818; --text:#f2f0ec; --muted:#a7a29b; --line:#34312d; --accent:#d8a06a; --green:#6ecf8e; }
       * { box-sizing:border-box; }
       body { margin:0; min-height:100vh; background:var(--background); color:var(--text); font:16px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
       .page { width:min(100% - 40px,1040px); margin:0 auto; padding:72px 0 64px; }
       header { max-width:680px; margin-bottom:56px; }
-      .eyebrow,.card-label,.note-number { color:var(--accent); font-size:12px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
+      .eyebrow,.card-label,.note-number,.chip-tag { color:var(--accent); font-size:12px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
       h1 { margin:0; font-size:clamp(2.7rem,7vw,5rem); letter-spacing:-.065em; line-height:.98; }
       .intro { max-width:590px; margin:22px 0 0; color:var(--muted); font-size:1.08rem; }
       .firmware-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
@@ -22,6 +22,8 @@
       esp-web-install-button { display:block; margin-top:auto; padding-top:28px; }
       .bw16-card { grid-column:1 / -1; min-height:0; }
       .bw16-card a { display:inline-block; margin-top:24px; color:var(--accent); font-weight:700; }
+      .chip-list { display:flex; flex-wrap:wrap; gap:6px; margin:16px 0 0; }
+      .chip-tag { display:inline-block; padding:4px 10px; border:1px solid var(--line); border-radius:6px; font-size:11px; color:var(--green); letter-spacing:.05em; }
       .install-notes { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; margin-top:48px; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--line); }
       .note { min-height:104px; padding:18px; background:var(--surface); }
       .note-number { display:block; margin-bottom:8px; }
@@ -35,7 +37,7 @@
       <header>
         <p class="eyebrow">Infrared transmitter</p>
         <h1>Headless TV-B-Gone</h1>
-        <p class="intro">Choose a regional ESP32 firmware build and install it directly from the browser.</p>
+        <p class="intro">Choose a regional firmware build and install it directly from the browser. Plug in your board, pick a region, and hit Install.</p>
       </header>
       <main>
         <section class="firmware-grid" aria-label="Firmware selection">
@@ -43,12 +45,30 @@
             <p class="card-label">North America / Asia</p>
             <h2>NA / Asia firmware</h2>
             <p>Regional TV-B-Gone timing tables with expanded LG, Samsung, Toshiba, and Sony power-code coverage.</p>
+            <div class="chip-list">
+              <span class="chip-tag">ESP32</span>
+              <span class="chip-tag">ESP32-S2</span>
+              <span class="chip-tag">ESP32-S3</span>
+              <span class="chip-tag">ESP32-C3</span>
+              <span class="chip-tag">ESP32-C6</span>
+              <span class="chip-tag">ESP32-H2</span>
+              <span class="chip-tag">ESP8266</span>
+            </div>
             <esp-web-install-button manifest="./manifest-na.json"><span slot="unsupported">Web Serial is not supported. Use Chrome or Edge on desktop.</span><span slot="not-allowed">Use HTTPS and a USB data cable. Close other serial monitors and retry.</span></esp-web-install-button>
           </article>
           <article class="firmware-card">
             <p class="card-label">Europe</p>
             <h2>Europe firmware</h2>
             <p>European TV-B-Gone timing tables with expanded LG, Samsung, Toshiba, and Sony power-code coverage.</p>
+            <div class="chip-list">
+              <span class="chip-tag">ESP32</span>
+              <span class="chip-tag">ESP32-S2</span>
+              <span class="chip-tag">ESP32-S3</span>
+              <span class="chip-tag">ESP32-C3</span>
+              <span class="chip-tag">ESP32-C6</span>
+              <span class="chip-tag">ESP32-H2</span>
+              <span class="chip-tag">ESP8266</span>
+            </div>
             <esp-web-install-button manifest="./manifest-eu.json"><span slot="unsupported">Web Serial is not supported. Use Chrome or Edge on desktop.</span><span slot="not-allowed">Use HTTPS and a USB data cable. Close other serial monitors and retry.</span></esp-web-install-button>
           </article>
           <article class="firmware-card bw16-card">
@@ -61,10 +81,10 @@
         <section class="install-notes" aria-label="Installation steps">
           <div class="note"><span class="note-number">01</span><span>Connect a USB data cable</span></div>
           <div class="note"><span class="note-number">02</span><span>Choose the regional build</span></div>
-          <div class="note"><span class="note-number">03</span><span>Select the serial port</span></div>
+          <div class="note"><span class="note-number">03</span><span>Select the serial port & flash</span></div>
         </section>
       </main>
-      <footer><span>Chrome or Edge over HTTPS for ESP32</span><span>IR LED configured for GPIO 4</span><span>Use only on equipment you own or are authorized to control</span></footer>
+      <footer><span>Chrome or Edge over HTTPS</span><span>IR LED on GPIO 4 (ESP32) / GPIO 2 (ESP8266)</span><span>Use only on equipment you own or are authorized to control</span></footer>
     </div>
   </body>
 </html>
